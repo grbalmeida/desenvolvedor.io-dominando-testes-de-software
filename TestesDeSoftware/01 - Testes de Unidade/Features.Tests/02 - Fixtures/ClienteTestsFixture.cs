@@ -2,7 +2,7 @@
 using System;
 using Xunit;
 
-namespace Features.Tests.Fixtures
+namespace Features.Tests
 {
     [CollectionDefinition(nameof(ClienteCollection))]
     public class ClienteCollection : ICollectionFixture<ClienteTestsFixture>
