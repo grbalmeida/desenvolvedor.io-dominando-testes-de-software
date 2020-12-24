@@ -2,7 +2,7 @@
 using System;
 using Xunit;
 
-namespace Features.Tests._01___Traits
+namespace Features.Tests.Traits
 {
     public class ClienteTests
     {
