@@ -23,19 +23,38 @@ namespace NerdStore.Vendas.Domain
 
         public void AdicionarItem(PedidoItem pedidoItem)
         {
-            if (pedidoItem.Quantidade > MAX_UNIDADES_ITEM) throw new DomainException($"Máximo de {MAX_UNIDADES_ITEM} unidades por produto");
+            ValidarQuantidadeItemPermitida(pedidoItem);
 
-            if (PedidoItens.Any(p => p.ProdutoId == pedidoItem.ProdutoId))
+            if (PedidoItemExistente(pedidoItem))
             {
                 var itemExistente = _pedidoItens.FirstOrDefault(p => p.ProdutoId == pedidoItem.ProdutoId);
+
                 itemExistente.AdicionarUnidades(pedidoItem.Quantidade);
                 pedidoItem = itemExistente;
-
                 _pedidoItens.Remove(itemExistente);
             }
 
             _pedidoItens.Add(pedidoItem);
             CalcularValorPedido();
+        }
+
+        private bool PedidoItemExistente(PedidoItem item)
+        {
+            return _pedidoItens.Any(p => p.ProdutoId == item.ProdutoId);
+        }
+
+        private void ValidarQuantidadeItemPermitida(PedidoItem item)
+        {
+            var quantidadeItens = item.Quantidade;
+
+            if (PedidoItemExistente(item))
+            {
+                var itemExistente = _pedidoItens.FirstOrDefault(p => p.ProdutoId == item.ProdutoId);
+                quantidadeItens += itemExistente.Quantidade;
+            }
+
+            if (quantidadeItens > MAX_UNIDADES_ITEM)
+                throw new DomainException($"Máximo de {MAX_UNIDADES_ITEM} unidades por produto");
         }
 
         private void CalcularValorPedido()
@@ -72,7 +91,8 @@ namespace NerdStore.Vendas.Domain
 
         public PedidoItem(Guid produtoId, string produtoNome, int quantidade, decimal valorUnitario)
         {
-            if (quantidade < Pedido.MIN_UNIDADES_ITEM) throw new DomainException($"Mínimo de {Pedido.MIN_UNIDADES_ITEM} unidades por produto");
+            if (quantidade < Pedido.MIN_UNIDADES_ITEM)
+                throw new DomainException($"Mínimo de {Pedido.MIN_UNIDADES_ITEM} unidades por produto");
 
             ProdutoId = produtoId;
             ProdutoNome = produtoNome;
