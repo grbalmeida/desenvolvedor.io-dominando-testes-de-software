@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Features.Tests
 {
@@ -7,10 +8,12 @@ namespace Features.Tests
     public class ClienteFluentAssertionsTests
     {
         private readonly ClienteBogusFixture _clienteBogusFixture;
+        readonly ITestOutputHelper _outputHelper;
 
-        public ClienteFluentAssertionsTests(ClienteBogusFixture clienteBogusFixture)
+        public ClienteFluentAssertionsTests(ClienteBogusFixture clienteBogusFixture, ITestOutputHelper outputHelper)
         {
             _clienteBogusFixture = clienteBogusFixture;
+            _outputHelper = outputHelper;
         }
 
         [Fact(DisplayName = "Novo Cliente Válido")]
@@ -41,6 +44,8 @@ namespace Features.Tests
             // Assert
             result.Should().BeFalse();
             cliente.ValidationResult.Errors.Should().HaveCountGreaterOrEqualTo(1);
+
+            _outputHelper.WriteLine($"Foram encontrados {cliente.ValidationResult.Errors.Count} erros nesta validação");
         }
     }
 }
