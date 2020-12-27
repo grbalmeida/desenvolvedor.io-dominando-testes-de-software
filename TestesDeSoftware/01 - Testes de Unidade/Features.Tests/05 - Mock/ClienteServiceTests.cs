@@ -76,5 +76,102 @@ namespace Features.Tests
             Assert.True(clientes.Any());
             Assert.False(clientes.Count(c => !c.Ativo) > 0);
         }
+
+        [Fact(DisplayName = "Atualizar Cliente com Sucesso")]
+        [Trait("Categoria", "Cliente Service Mock Tests")]
+        public void ClienteService_Atualizar_DeveExecutarComSucesso()
+        {
+            // Arrange
+            var cliente = _clienteBogusFixture.GerarClienteValido();
+            var clienteRepo = new Mock<IClienteRepository>();
+            var mediatr = new Mock<IMediator>();
+
+            var clienteService = new ClienteService(clienteRepo.Object, mediatr.Object);
+
+            // Act
+            clienteService.Atualizar(cliente);
+
+            // Assert
+            clienteRepo.Verify(r => r.Atualizar(cliente), Times.Once);
+            mediatr.Verify(m => m.Publish(It.IsAny<INotification>(), CancellationToken.None), Times.Once);
+        }
+
+        [Fact(DisplayName = "Atualizar Cliente com Falha")]
+        [Trait("Categoria", "Cliente Service Mock Tests")]
+        public void ClienteService_Atualizar_DeveFalharDevidoClienteInvalido()
+        {
+            // Arrange
+            var cliente = _clienteBogusFixture.GerarClienteInvalido();
+            var clienteRepo = new Mock<IClienteRepository>();
+            var mediatr = new Mock<IMediator>();
+
+            var clienteService = new ClienteService(clienteRepo.Object, mediatr.Object);
+
+            // Act
+            clienteService.Atualizar(cliente);
+
+            // Assert
+            clienteRepo.Verify(r => r.Atualizar(cliente), Times.Never);
+            mediatr.Verify(m => m.Publish(It.IsAny<INotification>(), CancellationToken.None), Times.Never);
+        }
+
+        [Fact(DisplayName = "Inativar Cliente com Sucesso")]
+        [Trait("Categoria", "Cliente Service Mock Tests")]
+        public void ClienteService_Inativar_DeveExecutarComSucesso()
+        {
+            // Arrange
+            var cliente = _clienteBogusFixture.GerarClienteValido();
+            var clienteRepo = new Mock<IClienteRepository>();
+            var mediatr = new Mock<IMediator>();
+
+            var clienteService = new ClienteService(clienteRepo.Object, mediatr.Object);
+
+            // Act
+            clienteService.Inativar(cliente);
+
+            // Assert
+            Assert.False(cliente.Ativo);
+            clienteRepo.Verify(r => r.Atualizar(cliente), Times.Once);
+            mediatr.Verify(m => m.Publish(It.IsAny<INotification>(), CancellationToken.None), Times.Once);
+        }
+
+        [Fact(DisplayName = "Inativar Cliente com Falha")]
+        [Trait("Categoria", "Cliente Service Mock Tests")]
+        public void ClienteService_Inativar_DeveFalharDevidoClienteInvalido()
+        {
+            // Arrange
+            var cliente = _clienteBogusFixture.GerarClienteInvalido();
+            var clienteRepo = new Mock<IClienteRepository>();
+            var mediatr = new Mock<IMediator>();
+
+            var clienteService = new ClienteService(clienteRepo.Object, mediatr.Object);
+
+            // Act
+            clienteService.Inativar(cliente);
+
+            // Assert
+            Assert.True(cliente.Ativo);
+            clienteRepo.Verify(r => r.Atualizar(cliente), Times.Never);
+            mediatr.Verify(m => m.Publish(It.IsAny<INotification>(), CancellationToken.None), Times.Never);
+        }
+
+        [Fact(DisplayName = "Remover Cliente")]
+        [Trait("Categoria", "Cliente Service Mock Tests")]
+        public void ClienteService_Remover_DeveRemoverCliente()
+        {
+            // Arrange
+            var cliente = _clienteBogusFixture.GerarClienteInvalido();
+            var clienteRepo = new Mock<IClienteRepository>();
+            var mediatr = new Mock<IMediator>();
+
+            var clienteService = new ClienteService(clienteRepo.Object, mediatr.Object);
+
+            // Act
+            clienteService.Remover(cliente);
+
+            // Assert
+            clienteRepo.Verify(r => r.Remover(cliente.Id), Times.Once);
+            mediatr.Verify(m => m.Publish(It.IsAny<INotification>(), CancellationToken.None), Times.Once);
+        }
     }
 }
