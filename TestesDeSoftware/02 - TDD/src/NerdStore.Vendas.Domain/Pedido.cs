@@ -38,9 +38,27 @@ namespace NerdStore.Vendas.Domain
             CalcularValorPedido();
         }
 
+        public void AtualizarItem(PedidoItem pedidoItem)
+        {
+            ValidarPedidoItemInexistente(pedidoItem);
+            ValidarQuantidadeItemPermitida(pedidoItem);
+
+            var itemExistente = PedidoItens.FirstOrDefault(p => p.ProdutoId == pedidoItem.ProdutoId);
+
+            _pedidoItens.Remove(itemExistente);
+            _pedidoItens.Add(pedidoItem);
+
+            CalcularValorPedido();
+        }
+
         private bool PedidoItemExistente(PedidoItem item)
         {
             return _pedidoItens.Any(p => p.ProdutoId == item.ProdutoId);
+        }
+
+        private void ValidarPedidoItemInexistente(PedidoItem item)
+        {
+            if (!PedidoItemExistente(item)) throw new DomainException("O item não pertence ao pedido");
         }
 
         private void ValidarQuantidadeItemPermitida(PedidoItem item)
