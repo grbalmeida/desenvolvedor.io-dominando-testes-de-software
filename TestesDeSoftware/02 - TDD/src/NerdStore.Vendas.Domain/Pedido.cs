@@ -106,7 +106,7 @@ namespace NerdStore.Vendas.Domain
             CalcularValorPedido();
         }
 
-        private bool PedidoItemExistente(PedidoItem item)
+        public bool PedidoItemExistente(PedidoItem item)
         {
             return _pedidoItens.Any(p => p.ProdutoId == item.ProdutoId);
         }
