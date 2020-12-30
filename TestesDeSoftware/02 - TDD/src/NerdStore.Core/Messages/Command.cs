@@ -1,6 +1,6 @@
-﻿using FluentValidation.Results;
+﻿using System;
+using FluentValidation.Results;
 using MediatR;
-using System;
 
 namespace NerdStore.Core.Messages
 {
@@ -9,11 +9,14 @@ namespace NerdStore.Core.Messages
         public DateTime Timestamp { get; private set; }
         public ValidationResult ValidationResult { get; set; }
 
-        public Command()
+        protected Command()
         {
             Timestamp = DateTime.Now;
         }
 
-        public abstract bool EhValido();
+        public virtual bool EhValido()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

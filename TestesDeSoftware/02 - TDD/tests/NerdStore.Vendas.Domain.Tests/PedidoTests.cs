@@ -14,6 +14,7 @@ namespace NerdStore.Vendas.Domain.Tests
         public PedidoTests()
         {
             _clienteId = Guid.NewGuid();
+            _produtoId = Guid.NewGuid();
             _pedido = Pedido.PedidoFactory.NovoPedidoRascunho(_clienteId);
         }
 
