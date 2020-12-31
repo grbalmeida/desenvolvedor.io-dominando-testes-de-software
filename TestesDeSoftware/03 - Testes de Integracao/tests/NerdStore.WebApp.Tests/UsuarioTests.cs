@@ -26,13 +26,16 @@ namespace NerdStore.WebApp.Tests
             var initialResponse = await _testsFixture.Client.GetAsync("/Identity/Account/Register");
             initialResponse.EnsureSuccessStatusCode();
 
-            var email = new Faker().Internet.Email();
+            var antiForgeryToken = _testsFixture.ObterAntiForgeryToken(await initialResponse.Content.ReadAsStringAsync());
+
+            _testsFixture.GerarUserSenha();
 
             var formData = new Dictionary<string, string>
             {
-                { "Input.Email", email },
-                { "Input.Password", "Teste@123" },
-                { "Input.ConfirmPassword", "Teste@123" }
+                { _testsFixture.AntiForgeryFieldName, antiForgeryToken },
+                { "Input.Email", _testsFixture.UsuarioEmail },
+                { "Input.Password", _testsFixture.UsuarioSenha },
+                { "Input.ConfirmPassword", _testsFixture.UsuarioSenha }
             };
 
             var postRequest = new HttpRequestMessage(HttpMethod.Post, "/Identity/Account/Register")
@@ -47,7 +50,7 @@ namespace NerdStore.WebApp.Tests
             var responseString = await postResponse.Content.ReadAsStringAsync();
 
             postResponse.EnsureSuccessStatusCode();
-            Assert.Contains($"Hello {email}!", responseString);
+            Assert.Contains($"Hello {_testsFixture.UsuarioEmail}!", responseString);
         }
     }
 }
