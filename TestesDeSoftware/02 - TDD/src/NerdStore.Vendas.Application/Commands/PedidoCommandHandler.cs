@@ -60,18 +60,6 @@ namespace NerdStore.Vendas.Application.Commands
             return await _pedidoRepository.UnitOfWork.Commit();
         }
 
-        private bool ValidarComando(Command message)
-        {
-            if (message.EhValido()) return true;
-
-            foreach (var error in message.ValidationResult.Errors)
-            {
-                _mediator.Publish(new DomainNotification(message.MessageType, error.ErrorMessage));
-            }
-
-            return false;
-        }
-
         public async Task<bool> Handle(AtualizarItemPedidoCommand message, CancellationToken cancellationToken)
         {
             if (!ValidarComando(message)) return false;
@@ -166,6 +154,18 @@ namespace NerdStore.Vendas.Application.Commands
             _pedidoRepository.Atualizar(pedido);
 
             return await _pedidoRepository.UnitOfWork.Commit();
+        }
+
+        private bool ValidarComando(Command message)
+        {
+            if (message.EhValido()) return true;
+
+            foreach (var error in message.ValidationResult.Errors)
+            {
+                _mediator.Publish(new DomainNotification(message.MessageType, error.ErrorMessage));
+            }
+
+            return false;
         }
     }
 }
