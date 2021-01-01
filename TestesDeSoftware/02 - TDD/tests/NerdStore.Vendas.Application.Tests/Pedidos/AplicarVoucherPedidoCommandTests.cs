@@ -21,7 +21,7 @@ namespace NerdStore.Vendas.Application.Tests.Pedidos
             Assert.True(result);
         }
 
-        [Fact(DisplayName = "Adicionar Item Command Inválido")]
+        [Fact(DisplayName = "Aplicar Voucher Command Inválido")]
         [Trait("Categoria", "Vendas - Pedido Commands")]
         public void AplicarVoucherPedidoCommand_CommandEstaInvalido_NaoDevePassarNaValidacao()
         {

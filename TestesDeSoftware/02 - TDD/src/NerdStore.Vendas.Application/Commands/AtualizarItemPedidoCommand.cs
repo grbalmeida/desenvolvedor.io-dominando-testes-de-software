@@ -41,7 +41,7 @@ namespace NerdStore.Vendas.Application.Commands
                 .WithMessage("A quantidade miníma de um item é 1");
 
             RuleFor(c => c.Quantidade)
-                .LessThan(15)
+                .LessThanOrEqualTo(15)
                 .WithMessage("A quantidade máxima de um item é 15");
         }
     }
