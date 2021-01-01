@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using Moq;
 using Moq.AutoMock;
-using NerdStore.Core.DomainObjects;
 using NerdStore.Vendas.Application.Commands;
 using NerdStore.Vendas.Domain;
 using System;
@@ -252,6 +251,101 @@ namespace NerdStore.Vendas.Application.Tests.Pedidos
             // Assert
             Assert.False(result);
             _mocker.GetMock<IMediator>().Verify(m => m.Publish(It.IsAny<INotification>(), CancellationToken.None), Times.Exactly(4));
+        }
+
+        [Fact(DisplayName = "Remover Item Pedido com Sucesso")]
+        [Trait("Categoria", "Vendas - Pedido Command Handler")]
+        public async Task RemoverItem_PedidoExistente_DeveRemoverComSucesso()
+        {
+            // Arrange
+            var pedido = Pedido.PedidoFactory.NovoPedidoRascunho(_clienteId);
+            var pedidoItem1 = new PedidoItem(_produtoId, "Produto 1", 1, 10);
+            var pedidoItem2 = new PedidoItem(Guid.NewGuid(), "Produto 2", 2, 10);
+            var pedidoItem3 = new PedidoItem(Guid.NewGuid(), "Produto 3", 3, 10);
+            pedido.AdicionarItem(pedidoItem1);
+            pedido.AdicionarItem(pedidoItem2);
+            pedido.AdicionarItem(pedidoItem3);
+
+            var removerCommand = new RemoverItemPedidoCommand(_clienteId, _produtoId);
+
+            _mocker.GetMock<IPedidoRepository>()
+                .Setup(r => r.ObterPedidoRascunhoPorClienteId(_clienteId))
+                .Returns(Task.FromResult(pedido));
+
+            _mocker.GetMock<IPedidoRepository>()
+                .Setup(r => r.ObterItemPorPedido(pedido.Id, _produtoId))
+                .Returns(Task.FromResult(pedidoItem1));
+
+            _mocker.GetMock<IPedidoRepository>()
+                .Setup(r => r.UnitOfWork.Commit())
+                .Returns(Task.FromResult(true));
+
+            // Act
+            var result = await _pedidoHandler.Handle(removerCommand, CancellationToken.None);
+
+            // Assert
+            Assert.True(result);
+            _mocker.GetMock<IPedidoRepository>().Verify(r => r.RemoverItem(It.IsAny<PedidoItem>()), Times.Once);
+            _mocker.GetMock<IPedidoRepository>().Verify(r => r.Atualizar(It.IsAny<Pedido>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "Remover Item Pedido Command Inválido")]
+        [Trait("Categoria", "Vendas - Pedido Command Handler")]
+        public async Task RemoverItem_CommandInvalido_DeveRetornarFalsoELancarEventosDeNotificacao()
+        {
+            // Arrange
+            var removerCommand = new RemoverItemPedidoCommand(Guid.Empty, Guid.Empty);
+
+            // Act
+            var result = await _pedidoHandler.Handle(removerCommand, CancellationToken.None);
+
+            // Assert
+            Assert.False(result);
+            _mocker.GetMock<IMediator>().Verify(m => m.Publish(It.IsAny<INotification>(), CancellationToken.None), Times.Exactly(2));
+        }
+
+        [Fact(DisplayName = "Remover Item Pedido Inexistente")]
+        [Trait("Categoria", "Vendas - Pedido Command Handler")]
+        public async Task RemoverItem_PedidoInexistente_DeveRetornarFalsoELancarEventoDeNotificacao()
+        {
+            // Arrange
+            var removerCommand = new RemoverItemPedidoCommand(_clienteId, _produtoId);
+
+            // Act
+            var result = await _pedidoHandler.Handle(removerCommand, CancellationToken.None);
+
+            // Assert
+            Assert.False(result);
+            _mocker.GetMock<IMediator>().Verify(m => m.Publish(It.IsAny<INotification>(), CancellationToken.None), Times.Once);
+        }
+
+        [Fact(DisplayName = "Remover Item Pedido Item Inexistente")]
+        [Trait("Categoria", "Vendas - Pedido Command Handler")]
+        public async Task RemoverItem_PedidoItemInexistente_DeveRetornarFalsoELancarEventoDeNotificacao()
+        {
+            // Arrange
+            var pedido = Pedido.PedidoFactory.NovoPedidoRascunho(_clienteId);
+            var pedidoItem = new PedidoItem(_produtoId, "Produto Teste", 1, 10);
+            pedido.AdicionarItem(pedidoItem);
+
+            var pedidoItemInexistente = new PedidoItem(Guid.NewGuid(), "Produto Inexistente", 1, 20);
+
+            var removerCommand = new RemoverItemPedidoCommand(_clienteId, pedidoItemInexistente.ProdutoId);
+
+            _mocker.GetMock<IPedidoRepository>()
+                .Setup(r => r.ObterPedidoRascunhoPorClienteId(_clienteId))
+                .Returns(Task.FromResult(pedido));
+
+            _mocker.GetMock<IPedidoRepository>()
+                .Setup(r => r.ObterItemPorPedido(pedido.Id, pedidoItemInexistente.ProdutoId))
+                .Returns(Task.FromResult(pedidoItemInexistente));
+
+            // Act
+            var result = await _pedidoHandler.Handle(removerCommand, CancellationToken.None);
+
+            // Assert
+            Assert.False(result);
+            _mocker.GetMock<IMediator>().Verify(m => m.Publish(It.IsAny<INotification>(), CancellationToken.None), Times.Once);
         }
     }
 }
