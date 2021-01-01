@@ -28,7 +28,7 @@ namespace NerdStore.WebApp.MVC.Extensions
         public async Task<IViewComponentResult> InvokeAsync()
         {
             var carrinho = await _pedidoQueries.ObterCarrinhoCliente(ClienteId);
-            var itens = carrinho?.Items.Count ?? 0;
+            var itens = carrinho?.Itens.Count ?? 0;
 
             return View(itens);
         }

@@ -36,6 +36,7 @@ namespace NerdStore.Vendas.Domain
             if (!validationResult.IsValid) return validationResult;
 
             Voucher = voucher;
+            VoucherId = voucher.Id;
             VoucherUtilizado = true;
             CalcularValorPedido();
 

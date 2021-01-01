@@ -9,7 +9,7 @@
             <vc:summary />
 
             @{
-                if (Model?.Items != null)
+                if (Model?.Itens != null)
                 {
                     <table class="table">
                         <thead>
@@ -24,7 +24,7 @@
                         <tbody>
 
                             @{
-                                foreach (var item in Model.Items)
+                                foreach (var item in Model.Itens)
                                 {
                                     <tr>
                                         <td class="col-sm-5 col-md-5">

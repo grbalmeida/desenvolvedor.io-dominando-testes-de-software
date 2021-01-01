@@ -37,7 +37,7 @@ namespace NerdStore.Vendas.Application.Queries
 
             foreach (var item in pedido.PedidoItens)
             {
-                carrinho.Items.Add(new CarrinhoItemViewModel
+                carrinho.Itens.Add(new CarrinhoItemViewModel
                 {
                     ProdutoId = item.ProdutoId,
                     ProdutoNome = item.ProdutoNome,
