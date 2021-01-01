@@ -347,5 +347,95 @@ namespace NerdStore.Vendas.Application.Tests.Pedidos
             Assert.False(result);
             _mocker.GetMock<IMediator>().Verify(m => m.Publish(It.IsAny<INotification>(), CancellationToken.None), Times.Once);
         }
+
+        [Fact(DisplayName = "Atualizar Item Pedido com Sucesso")]
+        [Trait("Categoria", "Vendas - Pedido Command Handler")]
+        public async Task AtualizarItem_PedidoExistente_DeveRemoverComSucesso()
+        {
+            // Arrange
+            var pedido = Pedido.PedidoFactory.NovoPedidoRascunho(_clienteId);
+            var pedidoItem = new PedidoItem(_produtoId, "Produto Teste", 1, 10);
+            pedido.AdicionarItem(pedidoItem);
+
+            var atualizarCommand = new AtualizarItemPedidoCommand(_clienteId, _produtoId, 2);
+
+            _mocker.GetMock<IPedidoRepository>()
+                .Setup(r => r.ObterPedidoRascunhoPorClienteId(_clienteId))
+                .Returns(Task.FromResult(pedido));
+
+            _mocker.GetMock<IPedidoRepository>()
+                .Setup(r => r.ObterItemPorPedido(pedido.Id, _produtoId))
+                .Returns(Task.FromResult(pedidoItem));
+
+            _mocker.GetMock<IPedidoRepository>()
+                .Setup(r => r.UnitOfWork.Commit())
+                .Returns(Task.FromResult(true));
+
+            // Act
+            var result = await _pedidoHandler.Handle(atualizarCommand, CancellationToken.None);
+
+            // Assert
+            Assert.True(result);
+            _mocker.GetMock<IPedidoRepository>().Verify(r => r.AtualizarItem(It.IsAny<PedidoItem>()), Times.Once);
+            _mocker.GetMock<IPedidoRepository>().Verify(r => r.Atualizar(It.IsAny<Pedido>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "Atualizar Item Pedido Command Inválido")]
+        [Trait("Categoria", "Vendas - Pedido Command Handler")]
+        public async Task AtualizarItem_CommandInvalido_DeveRetornarFalsoELancarEventosDeNotificacao()
+        {
+            // Arrange
+            var atualizarCommand = new AtualizarItemPedidoCommand(Guid.Empty, Guid.Empty, 0);
+
+            // Act
+            var result = await _pedidoHandler.Handle(atualizarCommand, CancellationToken.None);
+
+            // Assert
+            Assert.False(result);
+            _mocker.GetMock<IMediator>().Verify(m => m.Publish(It.IsAny<INotification>(), CancellationToken.None), Times.Exactly(3));
+        }
+
+        [Fact(DisplayName = "Atualizar Item Pedido Inexistente")]
+        [Trait("Categoria", "Vendas - Pedido Command Handler")]
+        public async Task AtualizarItem_PedidoInexistente_DeveRetornarFalsoELancarEventoDeNotificacao()
+        {
+            // Arrange
+            var atualizarCommand = new AtualizarItemPedidoCommand(_clienteId, _produtoId, 1);
+
+            // Act
+            var result = await _pedidoHandler.Handle(atualizarCommand, CancellationToken.None);
+
+            // Assert
+            Assert.False(result);
+            _mocker.GetMock<IMediator>().Verify(m => m.Publish(It.IsAny<INotification>(), CancellationToken.None), Times.Once);
+        }
+
+        [Fact(DisplayName = "Atualizar Item Pedido Item Inexistente")]
+        [Trait("Categoria", "Vendas - Pedido Command Handler")]
+        public async Task AtualizarItem_PedidoItemInexistente_DeveRetornarFalsoELancarEventoDeNotificacao()
+        {
+            // Arrange
+            var pedido = Pedido.PedidoFactory.NovoPedidoRascunho(_clienteId);
+            var pedidoItem = new PedidoItem(_produtoId, "Produto Teste", 1, 10);
+            pedido.AdicionarItem(pedidoItem);
+            var pedidoItemInexistente = new PedidoItem(Guid.NewGuid(), "Produto Inexistente", 1, 20);
+
+            var atualizarCommand = new AtualizarItemPedidoCommand(_clienteId, pedidoItemInexistente.ProdutoId, 2);
+
+            _mocker.GetMock<IPedidoRepository>()
+                .Setup(r => r.ObterPedidoRascunhoPorClienteId(_clienteId))
+                .Returns(Task.FromResult(pedido));
+
+            _mocker.GetMock<IPedidoRepository>()
+                .Setup(r => r.ObterItemPorPedido(pedido.Id, pedidoItemInexistente.ProdutoId))
+                .Returns(Task.FromResult(pedidoItemInexistente));
+
+            // Act
+            var result = await _pedidoHandler.Handle(atualizarCommand, CancellationToken.None);
+
+            // Assert
+            Assert.False(result);
+            _mocker.GetMock<IMediator>().Verify(m => m.Publish(It.IsAny<INotification>(), CancellationToken.None), Times.Once);
+        }
     }
 }
