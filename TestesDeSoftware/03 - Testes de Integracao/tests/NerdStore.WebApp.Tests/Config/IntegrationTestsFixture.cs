@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using NerdStore.WebApp.MVC;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace NerdStore.WebApp.Tests.Config
@@ -34,7 +36,10 @@ namespace NerdStore.WebApp.Tests.Config
         {
             var clientOptions = new WebApplicationFactoryClientOptions
             {
-
+                AllowAutoRedirect = true,
+                BaseAddress = new Uri("http://localhost"),
+                HandleCookies = true,
+                MaxAutomaticRedirections = 7
             };
 
             Factory = new LojaAppFactory<TStartup>();
@@ -46,6 +51,28 @@ namespace NerdStore.WebApp.Tests.Config
             var faker = new Faker();
             UsuarioEmail = faker.Internet.Email().ToLower();
             UsuarioSenha = faker.Internet.Password(8, false, "", "@1Ab_");
+        }
+
+        public async Task RealizarLoginWeb()
+        {
+            var initialResponse = await Client.GetAsync("/Identity/Account/Login");
+            initialResponse.EnsureSuccessStatusCode();
+
+            var antiForgeryToken = ObterAntiForgeryToken(await initialResponse.Content.ReadAsStringAsync());
+
+            var formData = new Dictionary<string, string>
+            {
+                { AntiForgeryFieldName, antiForgeryToken },
+                { "Input.Email", "teste@teste.com" },
+                { "Input.Password", "Teste@123" }
+            };
+
+            var postRequest = new HttpRequestMessage(HttpMethod.Post, "/Identity/Account/Login")
+            {
+                Content = new FormUrlEncodedContent(formData)
+            };
+
+            await Client.SendAsync(postRequest);
         }
 
         public string ObterAntiForgeryToken(string htmlBody)
