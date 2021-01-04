@@ -79,7 +79,7 @@ namespace NerdStore.Vendas.Domain
 
         public bool PedidoItemExistente(PedidoItem item)
         {
-            return _pedidoItens.Any(p => p.ProdutoId == item.ProdutoId);
+            return _pedidoItens.Any(p => p.ProdutoId == item?.ProdutoId);
         }
 
         private void ValidarPedidoItemInexistente(PedidoItem item)
