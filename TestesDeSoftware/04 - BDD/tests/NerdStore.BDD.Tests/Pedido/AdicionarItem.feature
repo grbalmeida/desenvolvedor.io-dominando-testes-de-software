@@ -13,14 +13,14 @@ E O valor total do pedido será exatamente o valor do item adicionado
 
 Cenário: Adicionar itens acima do limite
 Dado Que um produto esteja na vitrine
-E E esteja disponível no estoque
+E Esteja disponível no estoque
 E O usuário esteja logado
 Quando O usuário adicionar um item acima da quantidade máxima permitida
 Então Receberá uma mensagem de erro mencionando que foi ultrapassada a quantidade limite
 
 Cenário: Adicionar item já existente no carrinho
 Dado Que um produto esteja na vitrine
-E E esteja disponível no estoque
+E Esteja disponível no estoque
 E O usuário esteja logado
 E O mesmo produto já tenha sido adicionado ao carrinho anteriomente
 Quando O usuário adicionar uma unidade ao carrinho
