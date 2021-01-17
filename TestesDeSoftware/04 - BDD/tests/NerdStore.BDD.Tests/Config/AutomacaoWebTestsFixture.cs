@@ -17,7 +17,7 @@ namespace NerdStore.BDD.Tests.Config
         {
             Usuario = new Usuario.Usuario();
             Configuration = new ConfigurationHelper();
-            BrowserHelper = new SeleniumHelper(Browser.Chrome, Configuration, false);
+            BrowserHelper = new SeleniumHelper(Browser.Chrome, Configuration);
         }
 
         public void GerarDadosUsuario()
